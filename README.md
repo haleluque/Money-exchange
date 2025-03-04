@@ -12,6 +12,7 @@ The exercise is compound by the folling:
 - Application responsible for getting the exchange rate of one currency in another.
 - In this example this microservice has multiple artificial instances with different ports.
 - This application has as well a JPA basic implementation where the data will be saved in a PostgresQL database
+- Resilience4j example for retrying and circuit breaker handle.
 
 ### Currency Conversion Microservice
 
