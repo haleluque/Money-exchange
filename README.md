@@ -13,10 +13,6 @@ The exercise is compound by the folling:
 - In this example this microservice has multiple artificial instances with different ports.
 - This application has as well a JPA basic implementation where the data will be saved in a PostgresQL database
 - Resilience4j example for retrying and circuit breaker handle.
-- Distributed tracing sending information using:
-  - Micrometer - provides a vendor-neutral interface for dimensional metrics
-  - OpenTelemetry - open standard for metrics, logs and traces
-  - zipkin - provides metrics to the distributed tracing server
 
 ### Currency Conversion Microservice
 
@@ -39,5 +35,13 @@ The exercise is compound by the folling:
 ### Distributed Tracing Server / Zipkin
 
 - Port: 9411
-- Distributed tracing example using zipkin, run "docker run -d -p 9411:9411 openzipkin/zipkin:latest" to pull the image and run it
+- Distributed tracing example using zipkin, run the following command to pull the image and run it
+  ```bash
+    docker run -d -p 9411:9411 openzipkin/zipkin:latest
+  ```
 - go to: http://localhost:9411/zipkin/
+- Distributed tracing server that receives information sent by the microservices using:
+  - Micrometer - provides a vendor-neutral interface for dimensional metrics
+  - OpenTelemetry - open standard for metrics, logs and traces
+  - zipkin - provides metrics to the distributed tracing server
+  - feign micrometer - allow traces when using feign

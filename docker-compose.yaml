@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres
+    image: postgres-db:v1
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: moneyExchange
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - local_network_haleluque
+    command: [ "postgres", "-c", "config_file=/etc/postgresql/postgresql.conf" ]
+    depends_on:
+      - zipkin
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+    networks:
+      - local_network_haleluque
+
+  currency-exchange-service:
+    image: haleluque/micro-currency-exchange-service:0.0.1-SNAPSHOT #Its way easier to pre build the image with mvn separately from the docker compose
+    environment:
+      DB_HOST: postgres-db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: admin
+      DB_NAME: moneyExchange
+    ports:
+      - "8000:8000"
+    networks:
+      - local_network_haleluque
+    depends_on:
+      - postgres-db
+      - zipkin
+
+networks:
+  local_network_haleluque:
+    external: true # it is easy to create the local network separately
+
+volumes:
+  postgres_data:
