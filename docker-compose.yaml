@@ -23,10 +23,39 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:latest
+    mem_limit: 300m
     ports:
       - "9411:9411"
     networks:
       - local_network_haleluque
+    restart: always #Restart if there is a problem starting up
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9411" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  naming-service:
+    image: haleluque/eureka-naming-server:0.0.1-SNAPSHOT
+    ports:
+      - "8762:8761"
+    networks:
+      - local_network_haleluque
+    depends_on:
+      zipkin:
+        condition: service_healthy
+
+  api-gateway:
+    image: haleluque/micro-api-gateway:0.0.1-SNAPSHOT
+    environment:
+      EUREKA_SERVER_URI: http://naming-service:8761/eureka/
+    ports:
+      - "8765:8765"
+    networks:
+      - local_network_haleluque
+    depends_on:
+      zipkin:
+        condition: service_healthy
 
   currency-exchange-service:
     image: haleluque/micro-currency-exchange-service:0.0.1-SNAPSHOT #Its way easier to pre build the image with mvn separately from the docker compose
@@ -36,13 +65,41 @@ services:
       DB_USER: postgres
       DB_PASSWORD: admin
       DB_NAME: moneyExchange
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      EUREKA_SERVER_URI: http://naming-service:8761/eureka/
     ports:
       - "8000:8000"
     networks:
       - local_network_haleluque
     depends_on:
-      - postgres-db
-      - zipkin
+      zipkin:
+        condition: service_healthy
+      postgres-db:
+        condition: service_started
+      naming-service:
+        condition: service_started
+      api-gateway:
+        condition: service_started
+
+  currency-conversion-service:
+    image: haleluque/micro-currency-conversion-service:0.0.1-SNAPSHOT
+    environment:
+      EUREKA_SERVER_URI: http://naming-service:8761/eureka/
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin:9411/api/v2/spans
+      CURRENCY_EXCHANGE_SERVICE_BASE_URL: http://currency-exchange-service:8000
+    ports:
+      - "8100:8100"
+    networks:
+      - local_network_haleluque
+    depends_on:
+      zipkin:
+        condition: service_healthy
+      naming-service:
+        condition: service_started
+      currency-exchange-service:
+        condition: service_started
+      api-gateway:
+        condition: service_started
 
 networks:
   local_network_haleluque:

@@ -45,3 +45,39 @@ The exercise is compound by the folling:
   - OpenTelemetry - open standard for metrics, logs and traces
   - zipkin - provides metrics to the distributed tracing server
   - feign micrometer - allow traces when using feign
+
+## Steps to set up the microservices using Docker compose
+
+### Shared steps
+
+OPTIONAL - create a local docker network to include your containers
+
+```bash
+  docker network create local_network_haleluque
+```
+
+Make sure no previous images of docker, zipkin or the microservice has been built
+
+### 1. Build the microservices using mvn
+
+Move to each of the microservices in the project and build them with the following command:
+
+- Currency-exchange-service
+- Currency-conversion-service
+- Naming-server
+- Api gateway
+  ```bash
+    mvn clean spring-boot:build-image -DskipTest
+  ```
+
+### 2. Run the docker-compose file
+
+- On the same path of this README file, verify that the file 'docker-compose.yaml' exists
+- Open a bash or powershell console and run the following command:
+  ```bash
+    docker compose up -d --build
+  ```
+  If you need to shut down the containers run the following command:
+  ```bash
+    docker compose down
+  ```

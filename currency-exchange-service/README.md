@@ -12,7 +12,7 @@
 ### Example URl
 http://localhost:8000/currency-exchange/from/USD/to/COP
 
-## Steps to set up postgresSQL database container
+## Steps to set up postgresSQL database container and microservice
 ### Shared steps
 OPTIONAL - create a local docker network to include your containers
   ```bash 

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import com.haleluque.currency_conversion_service.model.CurrencyConversion;
 import com.haleluque.currency_conversion_service.proxy.CurrencyExchangeProxy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,9 @@ public class CurrencyConversionController {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Value("${currency-exchange-service.url}")
+    private String currencyExchangeServiceUrl;
+
     @GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversion calculateCurrencyConversionFeign(
             @PathVariable String from,
@@ -34,7 +38,7 @@ public class CurrencyConversionController {
                 from, to, quantity,
                 currencyConversion.getConversionMultiple(),
                 quantity.multiply(currencyConversion.getConversionMultiple()),
-                currencyConversion.getEnvironment()+ " " + "rest template");
+                currencyConversion.getEnvironment() + " " + "feign");
     }
 
     @GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}/rest-template")
@@ -45,15 +49,15 @@ public class CurrencyConversionController {
     ) {
 
         HashMap<String, String> uriVariables = new HashMap<>();
-        uriVariables.put("from",from);
-        uriVariables.put("to",to);
+        uriVariables.put("from", from);
+        uriVariables.put("to", to);
 
         //Automatically will be mapped from CurrencyExchange to CurrencyConversion
         //In order to send a proper tracer with zipkin, we need to use 'RestTemplateBuilder' instead of instantiating a RestTemplate
         //ResponseEntity<CurrencyConversion> responseEntity = new RestTemplate().getForEntity
+        String url = currencyExchangeServiceUrl + "/currency-exchange/from/{from}/to/{to}";
         ResponseEntity<CurrencyConversion> responseEntity = restTemplate.getForEntity
-                ("http://localhost:8000/currency-exchange/from/{from}/to/{to}",
-                        CurrencyConversion.class, uriVariables);
+                (url, CurrencyConversion.class, uriVariables);
 
         CurrencyConversion currencyConversion = responseEntity.getBody();
 
@@ -61,6 +65,6 @@ public class CurrencyConversionController {
                 from, to, quantity,
                 currencyConversion.getConversionMultiple(),
                 quantity.multiply(currencyConversion.getConversionMultiple()),
-                currencyConversion.getEnvironment()+ " " + "rest template");
+                currencyConversion.getEnvironment() + " " + "rest template");
     }
 }
